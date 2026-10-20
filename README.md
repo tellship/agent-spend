@@ -1,5 +1,7 @@
 # spend-report
 
+[![ci](https://github.com/tellship/agent-spend/actions/workflows/ci.yml/badge.svg)](https://github.com/tellship/agent-spend/actions/workflows/ci.yml)
+
 A small CLI plus a Claude Code `/spend` slash command. It reads the transcripts Claude Code already writes for a project and prints token spend by agent and by task. The CLI works offline and is read-only: it opens transcript files under `~/.claude/projects/` and makes no network calls. The `/spend` command puts the CLI's report into the conversation, which is sent to the API.
 
 ## Requirements
