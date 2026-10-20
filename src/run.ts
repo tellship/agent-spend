@@ -20,7 +20,7 @@ export interface RunResult {
   stderr: string;
 }
 
-const USAGE = "Usage: spend-report --by agent | --by task [--top N]\n";
+const USAGE = "Usage: agent-spend --by agent | --by task [--top N]\n";
 
 type Command = { by: "agent" } | { by: "task"; top?: number };
 

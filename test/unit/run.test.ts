@@ -290,7 +290,7 @@ describe("--by agent", () => {
     for (const argv of bad) {
       const result = run(argv, { home, cwd: "/work/demo" });
       expect(result.code).toBe(1);
-      expect(result.stderr).toContain("Usage: spend-report --by agent");
+      expect(result.stderr).toContain("Usage: agent-spend --by agent");
     }
   });
 });

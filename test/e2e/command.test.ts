@@ -50,7 +50,7 @@ describe("scripts/spend.sh", () => {
 
   describe("arguments", () => {
     const projectDir = () => cwd.replace(/[^a-zA-Z0-9]/g, "-");
-    const USAGE = "Usage: spend-report --by agent | --by task [--top N]";
+    const USAGE = "Usage: agent-spend --by agent | --by task [--top N]";
 
     beforeEach(() => {
       writeTranscript(home, projectDir(), "s1/subagents/agent-a1.jsonl", [assistantLine({ id: "m1", requestId: "r1", input: 5, output: 1 })]);

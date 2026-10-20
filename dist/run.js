@@ -3,7 +3,7 @@ import { formatAgentReport } from "./reportAgent.js";
 import { formatTaskReport } from "./reportTask.js";
 import { DEFAULT_WIDTH } from "./table.js";
 import { loadProject } from "./transcripts.js";
-const USAGE = "Usage: spend-report --by agent | --by task [--top N]\n";
+const USAGE = "Usage: agent-spend --by agent | --by task [--top N]\n";
 function parseArgs(argv) {
     const [flag, by, ...rest] = argv;
     if (flag !== "--by")
