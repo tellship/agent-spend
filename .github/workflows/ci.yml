@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC: catch advisories published since the last push
 
 permissions:
   contents: read
