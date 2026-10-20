@@ -1,4 +1,4 @@
-# spend-report
+# agent-spend
 
 [![ci](https://github.com/tellship/agent-spend/actions/workflows/ci.yml/badge.svg)](https://github.com/tellship/agent-spend/actions/workflows/ci.yml)
 
@@ -17,7 +17,7 @@ In Claude Code, in any project:
 /plugin install agent-spend --marketplace tellship/agent-spend
 ```
 
-Then run `/agent-spend:report`. It takes the same arguments as `/spend` below. The plugin ships its built `dist/`, so there is no build step. To get updates automatically, open `/plugin`, go to Marketplaces, select `ai-spend` and enable auto-update.
+Then run `/agent-spend:report`. It takes the same arguments as `/spend` below. The plugin ships its built `dist/`, so there is no build step. To get updates automatically, open `/plugin`, go to Marketplaces, select `agent-spend` and enable auto-update.
 
 ### From source (development)
 

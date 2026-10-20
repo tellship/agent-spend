@@ -1,5 +1,5 @@
 {
-  "name": "ai-spend",
+  "name": "agent-spend",
   "description": "The agent-spend plugin: /agent-spend:report prints Claude Code token spend",
   "owner": { "name": "coder", "email": "coder@tellship.com" },
   "plugins": [
