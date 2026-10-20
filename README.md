@@ -4,7 +4,7 @@ A small CLI plus a Claude Code `/spend` slash command. It reads the transcripts 
 
 ## Requirements
 
-- Node >= 20.19
+- Node >= 22
 - Claude Code
 
 ## Install
