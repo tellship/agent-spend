@@ -1,0 +1,6 @@
+{
+  "name": "agent-spend",
+  "description": "Token spend of this project's Claude Code sessions, by agent and by task",
+  "license": "MIT",
+  "author": { "name": "coder", "email": "coder@tellship.com" }
+}

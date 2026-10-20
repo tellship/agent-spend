@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Spend Guard · Demo</title>
+<meta name="description" content="Know the cost of every AI feature and customer, and get alerted before spending becomes a problem.">
+<style>
+/* ==========================================================
+   THEME TOKENS ("Ledger"): calm light paper, ink-navy text,
+   teal = trust/primary, amber = attention/alert.
+   Port these variables as-is to any future stack.
+   Contrast (WCAG): ink on paper 14.6:1, muted on paper 7.1:1,
+   accent on surface 6.3:1, alert-ink on alert-bg 9.2:1,
+   code-ink on code-bg 13.8:1. Focus ring 3:1+ on all surfaces.
+   ========================================================== */
+:root {
+  /* palette */
+  --color-paper: #f6f4ee;
+  --color-surface: #ffffff;
+  --color-ink: #14213d;
+  --color-muted: #4a5568;
+  --color-line: #d9d4c7;
+  --color-accent: #0b6b63;
+  --color-accent-strong: #084f49;
+  --color-accent-tint: #dff1ee;
+  --color-alert-bg: #fff3d1;
+  --color-alert-edge: #b45309;
+  --color-alert-ink: #4a2f00;
+  --color-code-bg: #0f1b2d;
+  --color-code-ink: #e6edf3;
+  --color-code-key: #8fd3c8;
+  --color-focus: #1d4ed8;
+
+  /* type */
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.375rem;
+  --text-xl: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
+  --text-metric: clamp(2.5rem, 1.8rem + 3.5vw, 4rem);
+  --leading: 1.55;
+
+  /* spacing (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 5rem;
+
+  /* shape */
+  --radius: 12px;
+  --radius-sm: 6px;
+  --border: 1px solid var(--color-line);
+  --shadow: 0 1px 2px rgba(20,33,61,.06), 0 4px 16px rgba(20,33,61,.05);
+  --measure: 68ch;
+  --page-max: 72rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--color-paper); color: var(--color-ink);
+  font: var(--text-md)/var(--leading) var(--font-body);
+}
+h1, h2, h3, p, ul, ol, dl, figure, blockquote { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+a { color: var(--color-accent); }
+:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; border-radius: 3px; }
+
+.skip-link {
+  position: absolute; left: var(--space-4); top: -4rem; z-index: 10;
+  background: var(--color-ink); color: #fff; padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+}
+.skip-link:focus { top: var(--space-4); }
+
+.wrap { max-width: var(--page-max); margin-inline: auto; padding-inline: var(--space-5); }
+@media (max-width: 480px) { .wrap { padding-inline: var(--space-4); } }
+
+/* header */
+.site-header { background: var(--color-surface); border-bottom: var(--border); }
+.site-header .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-4); }
+.brand { display: flex; align-items: center; gap: var(--space-3); font-weight: 700; letter-spacing: .06em; font-size: var(--text-sm); text-transform: uppercase; }
+.brand-mark { width: 28px; height: 28px; }
+.demo-pill { font-size: var(--text-xs); font-weight: 700; letter-spacing: .08em; background: var(--color-accent-tint); color: var(--color-accent-strong); padding: var(--space-1) var(--space-3); border-radius: 999px; }
+.site-nav ul { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+.site-nav a { display: inline-block; padding: var(--space-2) 0; font-size: var(--text-sm); color: var(--color-ink); text-decoration-color: var(--color-line); text-underline-offset: 4px; }
+.site-nav a:hover { color: var(--color-accent); text-decoration-color: currentColor; }
+
+/* hero */
+.hero { padding-block: var(--space-7) var(--space-6); }
+.hero h1 { font-size: var(--text-xl); line-height: 1.15; max-width: 22ch; letter-spacing: -.01em; }
+.hero p { margin-top: var(--space-4); max-width: var(--measure); color: var(--color-muted); }
+
+/* sections */
+section.block { padding-block: var(--space-7); border-top: var(--border); }
+section.block > .wrap > h2 { font-size: var(--text-lg); line-height: 1.25; margin-bottom: var(--space-5); max-width: 40ch; }
+section.block > .wrap > p { max-width: var(--measure); }
+section.block > .wrap > p + p { margin-top: var(--space-4); }
+.eyebrow { font-size: var(--text-xs); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-accent-strong); margin-bottom: var(--space-2); }
+
+.card { background: var(--color-surface); border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--space-5); }
+
+/* dashboard */
+.dash { display: grid; gap: var(--space-5); grid-template-columns: repeat(12, 1fr); }
+.dash > * { grid-column: span 12; }
+@media (min-width: 52rem) {
+  .dash .c-total { grid-column: span 7; }
+  .dash .c-side  { grid-column: span 5; }
+  .dash .c-feat  { grid-column: span 7; }
+  .dash .c-alert { grid-column: span 5; }
+}
+.dash-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-4); justify-content: space-between; }
+.dash-title h2 { font-size: var(--text-lg); }
+.badge { font-size: var(--text-xs); font-weight: 700; border: 1px dashed var(--color-muted); color: var(--color-muted); padding: 2px var(--space-3); border-radius: 999px; }
+.metric { font-size: var(--text-metric); font-weight: 750; line-height: 1; letter-spacing: -.02em; margin-top: var(--space-4); font-variant-numeric: tabular-nums; }
+.note { font-size: var(--text-sm); color: var(--color-muted); margin-top: var(--space-2); }
+.label { font-size: var(--text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.c-side { display: grid; gap: var(--space-5); align-content: start; }
+.c-side .card { display: grid; gap: var(--space-2); }
+.value { font-size: var(--text-lg); font-weight: 700; font-variant-numeric: tabular-nums; }
+.meter { height: 12px; background: var(--color-accent-tint); border-radius: 999px; overflow: hidden; margin-top: var(--space-2); }
+.meter > span { display: block; height: 100%; background: var(--color-accent); border-radius: inherit; }
+
+.feat-list { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+.feat-row { display: grid; grid-template-columns: 1fr auto; gap: var(--space-1) var(--space-4); align-items: baseline; }
+.feat-row .amt { font-weight: 700; font-variant-numeric: tabular-nums; }
+.feat-row .bar { grid-column: 1 / -1; height: 10px; background: var(--color-accent-tint); border-radius: 999px; overflow: hidden; }
+.feat-row .bar > span { display: block; height: 100%; background: var(--color-accent); }
+/* bar widths = share of $482.60 (301.20 / 120.40 / 61.00) */
+.w-support { width: 62.4%; } .w-wiki { width: 24.9%; } .w-class { width: 12.6%; }
+
+.alert { background: var(--color-alert-bg); border: 1px solid var(--color-alert-edge); border-left-width: 6px; color: var(--color-alert-ink); }
+.alert h3 { font-size: var(--text-md); display: flex; gap: var(--space-2); align-items: flex-start; }
+.alert p { margin-top: var(--space-3); font-size: var(--text-sm); }
+.alert .fine { font-size: var(--text-xs); margin-top: var(--space-4); font-style: italic; }
+
+/* flow */
+.flow { display: grid; gap: var(--space-4); align-items: stretch; margin-block: var(--space-5); }
+.flow-col { display: grid; gap: var(--space-4); }
+.node { background: var(--color-surface); border: var(--border); border-radius: var(--radius); padding: var(--space-4) var(--space-5); }
+.node h3 { font-size: var(--text-md); }
+.node p { font-size: var(--text-sm); color: var(--color-muted); margin-top: var(--space-1); }
+.node.sdk { border: 2px solid var(--color-accent); background: var(--color-accent-tint); }
+.node.sdk p { color: var(--color-accent-strong); }
+.arrow { display: grid; place-items: center; color: var(--color-accent); font-size: 1.75rem; line-height: 1; }
+.arrow::before { content: "\2193"; }
+@media (min-width: 52rem) {
+  .flow { grid-template-columns: 1fr auto 1fr auto 1fr; }
+  .arrow::before { content: "\2192"; }
+}
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.chips li { font-size: var(--text-xs); background: var(--color-paper); border: var(--border); border-radius: 999px; padding: 2px var(--space-3); color: var(--color-ink); }
+
+pre { margin: var(--space-5) 0 var(--space-3); background: var(--color-code-bg); color: var(--color-code-ink); border-radius: var(--radius); padding: var(--space-5); overflow-x: auto; font: var(--text-sm)/1.6 var(--font-mono); }
+pre .k { color: var(--color-code-key); }
+pre:focus-visible { outline-offset: 2px; }
+figcaption { font-size: var(--text-sm); color: var(--color-muted); max-width: var(--measure); }
+.example { margin-top: var(--space-5); padding: var(--space-4) var(--space-5); border-left: 4px solid var(--color-accent); background: var(--color-accent-tint); max-width: var(--measure); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+/* table */
+.table-scroll { overflow-x: auto; border: var(--border); border-radius: var(--radius); background: var(--color-surface); }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+caption { text-align: left; padding: var(--space-4) var(--space-5); font-weight: 700; font-size: var(--text-md); }
+th, td { text-align: left; vertical-align: top; padding: var(--space-3) var(--space-5); border-top: var(--border); }
+thead th { font-size: var(--text-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); background: var(--color-paper); }
+tbody th { font-weight: 600; width: 50%; }
+.closing { margin-top: var(--space-5); font-size: var(--text-lg); font-weight: 650; max-width: 44ch; }
+
+/* compare */
+.two-col { display: grid; gap: var(--space-5); margin-top: var(--space-5); }
+@media (min-width: 52rem) { .two-col { grid-template-columns: 1fr 1fr; } }
+.card h3 { font-size: var(--text-md); margin-bottom: var(--space-3); }
+.q-list { display: grid; gap: var(--space-3); }
+.q-list li { padding-left: var(--space-5); position: relative; }
+.q-list li::before { content: "?"; position: absolute; left: 0; font-weight: 800; color: var(--color-accent); }
+.limit { margin-top: var(--space-5); border-left: 4px solid var(--color-alert-edge); background: var(--color-alert-bg); color: var(--color-alert-ink); padding: var(--space-4) var(--space-5); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; max-width: var(--measure); font-size: var(--text-sm); }
+.limit strong { display: block; }
+
+/* verdict */
+.promise { background: var(--color-ink); color: #fff; border-radius: var(--radius); padding: var(--space-6) var(--space-5); }
+.promise .eyebrow { color: #9fe0d6; }
+.promise p.line { font-size: var(--text-lg); font-weight: 700; line-height: 1.3; max-width: 36ch; }
+.v1 { display: grid; gap: var(--space-2); margin-top: var(--space-5); }
+.v1 li { padding-left: var(--space-5); position: relative; }
+.v1 li::before { content: "\2713"; position: absolute; left: 0; color: var(--color-accent); font-weight: 800; }
+.later { margin-top: var(--space-4); color: var(--color-muted); }
+.validate { margin-top: var(--space-5); }
+
+footer { border-top: var(--border); padding-block: var(--space-6); color: var(--color-muted); font-size: var(--text-sm); background: var(--color-surface); }
+
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+@media print { .skip-link, .site-nav { display: none; } }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M14 2 3 6v8c0 6.2 4.4 10.6 11 12 6.6-1.4 11-5.8 11-12V6L14 2Z" fill="#0b6b63"/><path d="M9 15l3.5 3.5L19 11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>AI Spend Guard</span>
+      <span class="demo-pill">DEMO</span>
+    </div>
+    <nav class="site-nav" aria-label="Page sections">
+      <ul>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#how-used">How it works</a></li>
+        <li><a href="#actions">What you can do</a></li>
+        <li><a href="#different">Why not the provider dashboard</a></li>
+        <li><a href="#tools">Existing AI tools</a></li>
+        <li><a href="#verdict">Recommendation</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <!-- 1. DASHBOARD -->
+  <section class="hero" id="dashboard" aria-labelledby="dash-h">
+    <div class="wrap">
+      <p class="eyebrow">AI Spend Guard &middot; Demo</p>
+      <h1 id="dash-h">October AI spend</h1>
+      <p>A sample of what the dashboard would show. Every number on this page is a fictional example.</p>
+
+      <div class="dash" style="margin-top: var(--space-6)">
+        <article class="card c-total" aria-labelledby="total-l">
+          <div class="dash-title">
+            <h2 id="total-l" class="label">October AI spend</h2>
+            <span class="badge">Illustrative data</span>
+          </div>
+          <p class="metric" aria-label="482 dollars and 60 cents">$482.60</p>
+          <p class="note">Example monthly spend &middot; not live account data</p>
+        </article>
+
+        <div class="c-side">
+          <article class="card" aria-labelledby="budget-l">
+            <h2 id="budget-l" class="label">Budget used</h2>
+            <p class="value">80.4%</p>
+            <div class="meter" role="meter" aria-labelledby="budget-l" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80.4" aria-valuetext="80.4% of budget used"><span style="width:80.4%"></span></div>
+          </article>
+          <article class="card" aria-labelledby="centre-l">
+            <h2 id="centre-l" class="label">Largest cost centre</h2>
+            <p class="value">Support AI</p>
+            <p class="note" style="margin:0">$301.20 this month</p>
+          </article>
+        </div>
+
+        <article class="card c-feat" aria-labelledby="feat-l">
+          <h2 id="feat-l" style="font-size:var(--text-md)">Spend by feature</h2>
+          <ul class="feat-list">
+            <li class="feat-row"><span>Support ticket replies</span><span class="amt">$301.20</span><span class="bar" aria-hidden="true"><span class="w-support"></span></span></li>
+            <li class="feat-row"><span>Wiki summarisation</span><span class="amt">$120.40</span><span class="bar" aria-hidden="true"><span class="w-wiki"></span></span></li>
+            <li class="feat-row"><span>Classification</span><span class="amt">$61.00</span><span class="bar" aria-hidden="true"><span class="w-class"></span></span></li>
+          </ul>
+        </article>
+
+        <aside class="card alert c-alert" aria-labelledby="alert-l">
+          <h3 id="alert-l"><span aria-hidden="true">&#9650;</span> Example alert: Wiki summarisation</h3>
+          <p>Average tokens per request increased 3&times; compared with the previous week. Review the prompt, context size and caching strategy.</p>
+          <p class="fine">(The numbers are fictional examples.)</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. HOW YOU WOULD USE IT -->
+  <section class="block" id="how-used" aria-labelledby="how-h">
+    <div class="wrap">
+      <h2 id="how-h">How you would use it in a real application</h2>
+      <p>Picture a SaaS company using AI across Support, Product, Development and QA.</p>
+
+      <ol class="flow" aria-label="Data flow">
+        <li class="node">
+          <h3>Your application</h3>
+          <ul class="chips" aria-label="Examples"><li>Support replies</li><li>Wiki summaries</li><li>Code reviews</li></ul>
+        </li>
+        <li class="arrow" aria-hidden="true"></li>
+        <li class="node sdk">
+          <h3>AI Spend Guard SDK</h3>
+          <p>Records model, tokens, cost, feature and outcome</p>
+        </li>
+        <li class="arrow" aria-hidden="true"></li>
+        <li class="flow-col">
+          <div class="node"><h3>Cost analytics</h3><p>Where the money goes</p></div>
+          <div class="node"><h3>Alerts</h3><p>Unexpected cost increases</p></div>
+        </li>
+      </ol>
+
+      <figure>
+<pre tabindex="0" aria-label="Illustrative SDK pseudocode"><code><span class="k">const</span> result = <span class="k">await</span> spendGuard.track(
+  {
+    feature: "wiki-summary",
+    customerId: "customer-123",
+    environment: "production"
+  },
+  () =&gt; callYourLLM()
+);</code></pre>
+        <figcaption>This is illustrative SDK pseudocode, not an existing library. The SDK would wrap your normal LLM call, capture token usage from the provider's response, calculate estimated cost and associate it with the feature and customer.</figcaption>
+      </figure>
+      <p class="example"><strong>Example:</strong> the dashboard could reveal one customer's repeated wiki summarisation costing ten times more than expected.</p>
+    </div>
+  </section>
+
+  <!-- 3. ACTIONS -->
+  <section class="block" id="actions" aria-labelledby="act-h">
+    <div class="wrap">
+      <h2 id="act-h">What can you actually do with the information?</h2>
+      <div class="table-scroll">
+        <table>
+          <caption class="visually-hidden-fallback" style="position:absolute;left:-9999px">What you discover, and what you do about it</caption>
+          <thead><tr><th scope="col">What you discover</th><th scope="col">What you do</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">A feature's costs doubled</th><td>Inspect recent prompt or traffic changes</td></tr>
+            <tr><th scope="row">One customer consumes disproportionate tokens</th><td>Investigate usage patterns or introduce plan limits</td></tr>
+            <tr><th scope="row">A small model performs adequately for simple tasks</th><td>Route suitable requests to that model</td></tr>
+            <tr><th scope="row">The same document is summarised repeatedly</th><td>Cache the result</td></tr>
+            <tr><th scope="row">Retries account for significant spending</th><td>Fix retry loops and enforce limits</td></tr>
+            <tr><th scope="row">AI costs increase faster than revenue</th><td>Adjust pricing or feature allowances</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="closing">The goal is not just showing costs, but helping teams lower their cost per useful AI task.</p>
+    </div>
+  </section>
+
+  <!-- 4. DIFFERENT -->
+  <section class="block" id="different" aria-labelledby="diff-h">
+    <div class="wrap">
+      <h2 id="diff-h">How is this different from OpenAI's own dashboard?</h2>
+      <p>Providers already offer usage reporting, cost exports, spend alerts and project spend limits, so a total-spend dashboard is not enough.</p>
+      <p>AI Spend Guard combines several providers and connects costs to the application feature, customer and result.</p>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>It should answer</h3>
+          <ul class="q-list">
+            <li>Which customer is most expensive to serve with AI?</li>
+            <li>What does it cost us to resolve one support ticket?</li>
+            <li>Which model gives the best balance of cost and acceptable output?</li>
+            <li>How much money did our prompt optimisation actually save?</li>
+          </ul>
+        </div>
+        <div class="limit" style="margin-top:0;max-width:none">
+          <strong>Limitation</strong>
+          Provider billing data alone won't identify features or customers; application-level instrumentation is needed, and estimates must account for model pricing, retries, cached tokens and other billable operations.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. EXISTING TOOLS -->
+  <section class="block" id="tools" aria-labelledby="tools-h">
+    <div class="wrap">
+      <h2 id="tools-h">Could you use this with your existing AI tools?</h2>
+      <div class="two-col">
+        <article class="card" aria-labelledby="t-api">
+          <h3 id="t-api">LLM API usage</h3>
+          <p>Instrument API calls and aggregate cost by team, workflow and customer.</p>
+        </article>
+        <article class="card" aria-labelledby="t-sub">
+          <h3 id="t-sub">Developer-assistant subscriptions (Copilot, Claude subscriptions)</h3>
+          <p>These bill via pooled licences or plans, may not expose per-request cost, and need separate integrations. The SDK alone won't capture them.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. VERDICT -->
+  <section class="block" id="verdict" aria-labelledby="verdict-h">
+    <div class="wrap">
+      <h2 id="verdict-h">Recommendation</h2>
+      <div class="promise">
+        <p class="eyebrow">The promise</p>
+        <p class="line">Know the cost of every AI feature and customer, and get alerted before spending becomes a problem.</p>
+      </div>
+      <h3 style="margin-top:var(--space-6);font-size:var(--text-md)">Build v1 around that promise</h3>
+      <ul class="v1">
+        <li>One LLM provider</li>
+        <li>A lightweight SDK</li>
+        <li>A cost dashboard</li>
+        <li>Budget alerts</li>
+        <li>A customer/feature breakdown</li>
+      </ul>
+      <p class="later">Add model recommendations and automated cost controls later.</p>
+      <div class="card validate" role="note" aria-labelledby="val-h">
+        <h3 id="val-h">Key validation question</h3>
+        <p>Will developers pay for that visibility when providers already offer basic usage reporting? Interview potential customers before committing the full 2-4 weeks.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>AI Spend Guard &middot; Demo. Illustrative data &middot; not live account data. The SDK shown is pseudocode, not an existing library.</p>
+  </div>
+</footer>
+</body>
+</html>

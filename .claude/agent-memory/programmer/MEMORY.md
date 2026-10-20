@@ -1,0 +1,1 @@
+- [spend-report architecture](spend-report-architecture.md) — commands, layout, transcript-format gotchas for the spend-report CLI
