@@ -12,7 +12,7 @@ A small CLI plus a Claude Code `/spend` slash command. It reads the transcripts 
 In Claude Code, in any project:
 
 ```
-/plugin install agent-spend --marketplace tellship/ai-spend
+/plugin install agent-spend --marketplace tellship/agent-spend
 ```
 
 Then run `/agent-spend:report`. It takes the same arguments as `/spend` below. The plugin ships its built `dist/`, so there is no build step. To get updates automatically, open `/plugin`, go to Marketplaces, select `ai-spend` and enable auto-update.
@@ -20,7 +20,7 @@ Then run `/agent-spend:report`. It takes the same arguments as `/spend` below. T
 ### From source (development)
 
 ```
-git clone https://github.com/tellship/ai-spend.git && cd ai-spend
+git clone https://github.com/tellship/agent-spend.git && cd agent-spend
 npm install
 npm run build
 ```
